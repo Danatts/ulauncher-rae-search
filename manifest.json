@@ -1,0 +1,26 @@
+{
+  "required_api_version": "2",
+  "name": "Spanish Dictionary Search",
+  "description": "Search word definitions from unofficial RAE API",
+  "developer_name": "Daniel Arteta",
+  "icon": "images/icon.png",
+  "options": {
+    "query_debounce": 1.2
+  },
+  "preferences": [
+    {
+      "id": "keyword",
+      "type": "keyword",
+      "name": "RAE Search",
+      "description": "Keyword to trigger the extension",
+      "default_value": "rae"
+    },
+    {
+      "id": "max_results",
+      "type": "input",
+      "name": "Maximun results",
+      "description": "Maximun number of definitions to show",
+      "default_value": 5
+    }
+  ]
+}
