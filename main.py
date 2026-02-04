@@ -3,7 +3,6 @@ from ulauncher.api.client.Extension import Extension
 from ulauncher.api.client.EventListener import EventListener
 from ulauncher.api.shared.event import KeywordQueryEvent 
 from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
-from ulauncher.api.shared.item.SmallResultItem import SmallResultItem
 from ulauncher.api.shared.action.RenderResultListAction import RenderResultListAction
 from ulauncher.api.shared.action.CopyToClipboardAction import CopyToClipboardAction
 from ulauncher.api.shared.action.HideWindowAction import HideWindowAction
@@ -32,25 +31,49 @@ class KeywordQueryEventListener(EventListener):
                 )
             ])
 
-        max_results = int(extension.preferences.get('max_results', 5))
-        senses = extension.rae_api.search_word(query, max_results)
+        try:
+            max_results = int(extension.preferences.get('max_results', 5))
 
-        items = []
-        for sense in senses:
-            number = sense.get('meaning_number')
-            description = sense.get('description')
-            synonyms = ', '.join(sense.get('synonyms', []))
-            category = sense.get('category')
-            items.append(
+            senses = extension.rae_api.search_word(query, max_results)
+
+            if not senses:
+                return RenderResultListAction([
+                    ExtensionResultItem(
+                        icon='images/icon.png',
+                        name=f'No definitios found for: {query}',
+                        description='Try a different word or check spelling',
+                        on_enter=HideWindowAction()
+                )
+            ])
+
+            items = []
+            for sense in senses:
+                number = sense.get('meaning_number')
+                description = sense.get('description')
+                #synonyms = ', '.join(sense.get('synonyms', ['']))
+                synonyms = ''
+                category = sense.get('category')
+                items.append(
+                    ExtensionResultItem(
+                        icon='images/icon.png',
+                        name=f'{number}: {description}.',
+                        description=f'Cat.: {category}. | Syn.: {synonyms}.',
+                        on_enter=CopyToClipboardAction(description)
+                    )
+                )
+
+            return RenderResultListAction(items)
+        
+        except Exception as e:
+            logger.error(f'Error searching RAE: {str(e)}')
+            return RenderResultListAction([
                 ExtensionResultItem(
                     icon='images/icon.png',
-                    name=f'{number}: {description}.',
-                    description=f'Cat.: {category}. | Syn.: {synonyms}.',
-                    on_enter=CopyToClipboardAction(description)
+                    name=f'Error connecting to RAE API',
+                    description='Check your internet coneection or try again later',
+                    on_enter=HideWindowAction()
                 )
-            )
-
-        return RenderResultListAction(items)
+            ])
 
 if __name__ == '__main__':
     RAEExtension().run()

@@ -1,6 +1,6 @@
 import logging
 import requests
-from api_types import Definition, WordEntryResponse, WordEntry
+from api_types import Definition, ErrorResponse, RateLimitExceededResponse, WordEntryResponse, WordEntry
 from typing import List
 
 logger = logging.getLogger(__name__)
@@ -25,11 +25,18 @@ class RAEAPI:
                 headers=self.headers,
                 timeout=10
             )
-            response.raise_for_status()
-            entry_response: WordEntryResponse = response.json()
 
-            if entry_response.get('ok') == False:
+            if response.status_code == 404:
+                error_respone: ErrorResponse = response.json()
+                logger.error(f"Request error: {error_respone.get('error')}")
                 return []
+
+            if response.status_code == 429:
+                rate_limit: RateLimitExceededResponse = response.json()
+                logger.error(f"Request error: {rate_limit.get('error')}")
+                return []
+
+            entry_response: WordEntryResponse = response.json()
 
             return self.get_word_senses(entry_response.get('data'), max_results)
 
