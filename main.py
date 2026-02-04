@@ -36,27 +36,36 @@ class KeywordQueryEventListener(EventListener):
 
             senses = extension.rae_api.search_word(query, max_results)
 
+            if senses is None:
+                return RenderResultListAction([
+                    ExtensionResultItem(
+                        icon='images/icon.png',
+                        name=f'Error connecting to RAE API',
+                        description='Check your internet connection or try again later',
+                        on_enter=HideWindowAction()
+                    )
+                ])
+
             if not senses:
                 return RenderResultListAction([
                     ExtensionResultItem(
                         icon='images/icon.png',
-                        name=f'No definitios found for: {query}',
+                        name=f'No definitions found for: {query}',
                         description='Try a different word or check spelling',
                         on_enter=HideWindowAction()
-                )
-            ])
+                    )
+                ])
 
             items = []
             for sense in senses:
                 number = sense.get('meaning_number')
                 description = sense.get('description')
-                #synonyms = ', '.join(sense.get('synonyms', ['']))
-                synonyms = ''
+                synonyms = ', '.join(sense.get('synonyms') or []) or '—'
                 category = sense.get('category')
                 items.append(
                     ExtensionResultItem(
                         icon='images/icon.png',
-                        name=f'{number}: {description}.',
+                        name=f'{number}. {description}.',
                         description=f'Cat.: {category}. | Syn.: {synonyms}.',
                         on_enter=CopyToClipboardAction(description)
                     )
@@ -70,7 +79,7 @@ class KeywordQueryEventListener(EventListener):
                 ExtensionResultItem(
                     icon='images/icon.png',
                     name=f'Error connecting to RAE API',
-                    description='Check your internet coneection or try again later',
+                    description='Check your internet connection or try again later',
                     on_enter=HideWindowAction()
                 )
             ])

@@ -24,9 +24,9 @@ class Article(TypedDict):
 class Definition(TypedDict):
     raw: str
     meaning_number: int
+    category: str
     verb_category: str
     gender: str
-    usage: str
     article: Article
     usage: str
     description: str

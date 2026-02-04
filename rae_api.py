@@ -15,7 +15,7 @@ class RAEAPI:
     def search_word(
             self, word: str,
             max_results: int = 5
-    ) -> List[Definition]:
+    ) -> List[Definition] | None:
         """Search for a word in the RAE dictionary"""
         try:
             word = word.strip().lower()
@@ -28,28 +28,41 @@ class RAEAPI:
 
             if response.status_code == 404:
                 error_respone: ErrorResponse = response.json()
-                logger.error(f"Request error: {error_respone.get('error')}")
+                logger.error(f'Request error: {error_respone.get('error')}.')
                 return []
 
             if response.status_code == 429:
                 rate_limit: RateLimitExceededResponse = response.json()
-                logger.error(f"Request error: {rate_limit.get('error')}")
+                logger.error(f'Request error: {rate_limit.get('error')}.')
                 return []
 
             entry_response: WordEntryResponse = response.json()
 
+            if not entry_response.get('ok'):
+                logger.error(f'Request error: word entry data false.')
+                return []
+
             return self.get_word_senses(entry_response.get('data'), max_results)
 
         except requests.exceptions.RequestException as e:
-            logger.error(f"Request error: {str(e)}")
-            return []
+            logger.error(f'Connection error: {str(e)}')
+            return None
 
         except Exception as e:
-            logger.error(f"Unexpected error: {str(e)}")
-            return []
+            logger.error(f'Unexpected error: {str(e)}')
+            return None
     
     def get_word_senses(
-            self, word_entry: WordEntry,
+            self,
+            word_entry: WordEntry,
             max_results: int
     ) -> List[Definition]:
-        return [x for x in word_entry.get('meanings')[0].get('senses')[:max_results]]
+        meanings = word_entry.get('meanings', [])
+        if not meanings:
+            return []
+
+        senses = meanings[0].get('senses', [])
+        if not meanings:
+            return []
+
+        return senses[:max_results]
