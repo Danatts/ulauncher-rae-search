@@ -32,14 +32,14 @@ class KeywordQueryEventListener(EventListener):
                 )
             ])
 
-        max_results = int(extension.preferences['max_results']) if extension.preferences['max_results'] != '' else 5
+        max_results = int(extension.preferences.get('max_results', 5))
         senses = extension.rae_api.search_word(query, max_results)
 
         items = []
         for sense in senses:
             number = sense.get('meaning_number')
             description = sense.get('description')
-            synonyms = ', '.join(sense.get('synonyms')) if sense.get('synonyms') else ''
+            synonyms = ', '.join(sense.get('synonyms', []))
             category = sense.get('category')
             items.append(
                 ExtensionResultItem(
