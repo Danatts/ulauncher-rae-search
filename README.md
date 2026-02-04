@@ -2,5 +2,5 @@
 
 ## TODO
 
-- [] Manage no network error
-- [] Add API KEY option
+- [ ] Manage no network error
+- [ ] Add API KEY option
