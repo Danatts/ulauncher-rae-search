@@ -1,6 +1,8 @@
 # Spanish Dictionary Search (RAE)
 
-A **Ulauncher extension** that lets you search Spanish word definitions using an **unofficial Real Academia Española (RAE) API**. Built to be fast, lightweight, and with clear handling of network and API errors.
+A **Ulauncher extension** that lets you search Spanish word definitions using an **unofficial Real Academia Española (RAE) API**. Built to be fast and lightweight.
+
+![example](./images/example.gif)
 
 ---
 
@@ -16,8 +18,8 @@ A **Ulauncher extension** that lets you search Spanish word definitions using an
 ## 🧩 Requirements
 
 * Linux
-* **Ulauncher v5+**
-* Python **3.8+**
+* Ulauncher v5+
+* Python 3.8+
 * Internet connection
 
 ---
@@ -29,7 +31,7 @@ A **Ulauncher extension** that lets you search Spanish word definitions using an
 3. Paste the repository URL:
 
 ```
-https://github.com/your-username/ulauncher-rae-extension
+https://github.com/danatts/ulauncher-rae-extension
 ```
 
 4. Restart Ulauncher
