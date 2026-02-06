@@ -1,4 +1,3 @@
-import logging
 from ulauncher.api.client.Extension import Extension
 from ulauncher.api.client.EventListener import EventListener
 from ulauncher.api.shared.event import KeywordQueryEvent 
@@ -6,9 +5,8 @@ from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
 from ulauncher.api.shared.action.RenderResultListAction import RenderResultListAction
 from ulauncher.api.shared.action.CopyToClipboardAction import CopyToClipboardAction
 from ulauncher.api.shared.action.HideWindowAction import HideWindowAction
+from api_types import SearchStatus
 from rae_api import RAEAPI
-
-logger = logging.getLogger(__name__)
 
 class RAEExtension(Extension):
     def __init__(self):
@@ -18,7 +16,7 @@ class RAEExtension(Extension):
 
 
 class KeywordQueryEventListener(EventListener):
-    def on_event(self, event, extension):
+    def on_event(self, event: KeywordQueryEvent, extension: RAEExtension):
         query = event.get_argument()
 
         if not query or len(query.strip()) < 2:
@@ -34,33 +32,58 @@ class KeywordQueryEventListener(EventListener):
         try:
             max_results = int(extension.preferences.get('max_results', 5))
 
-            senses = extension.rae_api.search_word(query, max_results)
+            result = extension.rae_api.search_word(query, max_results)
+            status = result.get('status')
 
-            if senses is None:
+            if status is SearchStatus.NETWORK_ERROR:
                 return RenderResultListAction([
                     ExtensionResultItem(
                         icon='images/icon.png',
-                        name=f'Error connecting to RAE API',
-                        description='Check your internet connection or try again later',
+                        name=f'Can noy connect to RAE API',
+                        description='Check your internet connection and try again',
                         on_enter=HideWindowAction()
                     )
                 ])
 
-            if not senses:
+            if status is SearchStatus.RATE_LIMIT:
+                wait = f'{result.get('retry_after')} seconds'
                 return RenderResultListAction([
                     ExtensionResultItem(
                         icon='images/icon.png',
-                        name=f'No definitions found for: {query}',
-                        description='Try a different word or check spelling',
+                        name=f'RAE API rate limit exceeded',
+                        description=f'Try again in {wait}',
+                        on_enter=HideWindowAction()
+                    )
+                ])
+
+            if status is SearchStatus.NOT_FOUND:
+                suggestions = ', '.join(result.get('suggestions') or []) or ''
+                return RenderResultListAction([
+                    ExtensionResultItem(
+                        icon='images/icon.png',
+                        name=f'No definitions found for "{query}"',
+                        description=f'Sug.: {suggestions}',
+                        on_enter=HideWindowAction()
+                    )
+                ])
+
+            if status is SearchStatus.API_ERROR:
+                message = result.get('message', 'Unknown error')
+                return RenderResultListAction([
+                    ExtensionResultItem(
+                        icon='images/icon.png',
+                        name='Unexpected error',
+                        description=f'{message}',
                         on_enter=HideWindowAction()
                     )
                 ])
 
             items = []
+            senses = result.get('data', [])
             for sense in senses:
                 number = sense.get('meaning_number')
                 description = sense.get('description')
-                synonyms = ', '.join(sense.get('synonyms') or []) or '—'
+                synonyms = ', '.join(sense.get('synonyms') or []) or ''
                 category = sense.get('category')
                 items.append(
                     ExtensionResultItem(
@@ -74,15 +97,14 @@ class KeywordQueryEventListener(EventListener):
             return RenderResultListAction(items)
         
         except Exception as e:
-            logger.error(f'Error searching RAE: {str(e)}')
-            return RenderResultListAction([
-                ExtensionResultItem(
-                    icon='images/icon.png',
-                    name=f'Error connecting to RAE API',
-                    description='Check your internet connection or try again later',
-                    on_enter=HideWindowAction()
-                )
-            ])
+           return RenderResultListAction([
+               ExtensionResultItem(
+                   icon='images/icon.png',
+                   name='Unexpected error',
+                   description=f'{e}',
+                   on_enter=HideWindowAction()
+               )
+           ])
 
 if __name__ == '__main__':
     RAEExtension().run()

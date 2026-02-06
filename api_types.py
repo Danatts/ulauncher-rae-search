@@ -1,15 +1,12 @@
 from typing import List, TypedDict
+from enum import Enum
 
-class ErrorResponse(TypedDict):
-    ok: bool
-    error: str
-    suggestions: List[str]
-
-class RateLimitExceededResponse(TypedDict):
-    ok: bool
-    error: str
-    message: str
-    retry_after: int
+class SearchStatus(Enum):
+    OK = 'ok'
+    NOT_FOUND = 'not_found'
+    NETWORK_ERROR = 'network_error'
+    RATE_LIMIT = 'rate_limit'
+    API_ERROR = 'api_error'
 
 class Conjugation(TypedDict):
     non_personal: str
@@ -51,3 +48,22 @@ class WordEntry(TypedDict):
 class WordEntryResponse(TypedDict):
     ok: bool
     data: WordEntry
+
+class ErrorResponse(TypedDict):
+    ok: bool
+    error: str
+    suggestions: List[str]
+
+class RateLimitExceededResponse(TypedDict):
+    ok: bool
+    error: str
+    message: str
+    retry_after: int
+
+class SearhResult(TypedDict, total=False):
+    status: SearchStatus
+    data: List[Definition]
+    suggestions: List[str]
+    retry_after: int
+    message: str
+
