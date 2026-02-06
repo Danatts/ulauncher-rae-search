@@ -31,7 +31,7 @@ A **Ulauncher extension** that lets you search Spanish word definitions using an
 3. Paste the repository URL:
 
 ```
-https://github.com/danatts/ulauncher-rae-extension
+https://github.com/Danatts/ulauncher-rae-search
 ```
 
 4. Restart Ulauncher
